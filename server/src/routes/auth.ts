@@ -28,6 +28,39 @@ router.post("/login", (req: Request, res: Response) => {
   });
 });
 
+router.post("/register", (req: Request, res: Response) => {
+  const { username, password, name, role } = req.body;
+
+  if (!username || !password || !name || !role) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  if (users.find((u) => u.username === username)) {
+    return res.status(409).json({ message: "Username already exists" });
+  }
+
+  const newUser = {
+    id: users.length + 1,
+    username,
+    password,
+    name,
+    role,
+  };
+
+  users.push(newUser);
+
+  const token = jwt.sign(
+    { id: newUser.id, username: newUser.username, role: newUser.role },
+    JWT_SECRET,
+    { expiresIn: "1d" }
+  );
+
+  return res.status(201).json({
+    token,
+    user: { id: newUser.id, username: newUser.username, role: newUser.role, name: newUser.name },
+  });
+});
+
 router.get("/me", authMiddleware, (req: Request, res: Response) => {
   const user = users.find((u) => u.id === req.user!.id);
   if (!user) {
