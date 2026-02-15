@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { users } from "../data/users.js";
+import { Role } from "../types.js";
 import { authMiddleware, JWT_SECRET } from "../middleware/authMiddleware.js";
 
 const router = Router();
@@ -35,6 +36,11 @@ router.post("/register", (req: Request, res: Response) => {
     return res.status(400).json({ message: "All fields are required" });
   }
 
+  const validRoles: Role[] = ["student", "teacher"];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: "Role must be 'student' or 'teacher'" });
+  }
+
   if (users.find((u) => u.username === username)) {
     return res.status(409).json({ message: "Username already exists" });
   }
@@ -44,7 +50,7 @@ router.post("/register", (req: Request, res: Response) => {
     username,
     password,
     name,
-    role,
+    role: role as Role,
   };
 
   users.push(newUser);
